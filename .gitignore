@@ -1,0 +1,10 @@
+.env
+*.txt
+*.sqlite3
+*.ipynb
+*.pyc
+main.py
+test.py
+new.py
+chromadb_old.py
+home.html

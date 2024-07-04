@@ -1,0 +1,10 @@
+EMBEDDING_MODEL : "all-MiniLM-L6-v2"
+CHUNK_SIZE : 500
+CHUNK_OVERLAP : 100
+TEMPERATURE : 0
+LLM_MODEL : "gpt-3.5-turbo"
+EMAIL_SERVICE : "ses"
+SUBJECT : "Reset Your Password"        
+CHARSET : "UTF-8"
+SPLITTER : "recursive_splitter"
+LOADER : "llama_parser"
