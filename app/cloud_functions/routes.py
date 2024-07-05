@@ -2,7 +2,6 @@ import traceback
 
 from fastapi import Request
 from fastapi.routing import APIRouter
-from fastapi_versionizer import api_version
 
 from app.cloud_functions.schemas import DownloadFile, UploadFile
 from app.modules.s3_operations.s3_function import S3
@@ -12,7 +11,6 @@ from app.utils.responses import error_response, success_response
 router = APIRouter(prefix="/file")
 
 @router.post("/upload-file")
-@api_version(1)
 @require_token
 def upload_file(request: Request,upload_file : UploadFile,
                       ):
@@ -21,6 +19,7 @@ def upload_file(request: Request,upload_file : UploadFile,
             upload_file.file_path,
             upload_file.folder_path
         )
+        print("status_code",status_code)
         if status_code == 204:
             return success_response(msg="File Uploaded")
         else:
@@ -28,10 +27,9 @@ def upload_file(request: Request,upload_file : UploadFile,
     except Exception as e:
         print("Exception in upload_file",traceback.print_exc())
         return error_response(msg=f"err in upload_file : {e}",status_code=400)
-    
+
 
 @router.post("/download-file")
-@api_version(1)
 @require_token
 def download_file(request: Request,download_file : DownloadFile,
                         ):

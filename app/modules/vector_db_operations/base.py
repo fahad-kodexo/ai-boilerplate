@@ -3,7 +3,7 @@ from langchain_core.vectorstores import VectorStoreRetriever
 from typing import List
 
 class BaseVectorDB(ABC):
-    
+
     @classmethod
     @abstractmethod
     def add_documents(self,file_path,collection) -> bool : ...

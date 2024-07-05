@@ -3,7 +3,6 @@ from functools import wraps
 
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
-from fastapi_versionizer import api_version
 
 from app.modules.dispatch_emails.send_emails import Email
 from app.user.views import Users
@@ -20,26 +19,25 @@ templates = Jinja2Templates(directory="app/templates")
 def require_token(f):
     @wraps(f)
     def check_token(*args, **kwargs):
-        request: Request = kwargs['request']
+        request: Request = kwargs["request"]
         authorization_header = request.headers.get("Authorization")
         if authorization_header is None or not authorization_header.startswith("Bearer "):
             return error_response("Authorization header missing or invalid")
 
-        token = authorization_header.split(' ')[1]
+        token = authorization_header.split(" ")[1]
         jwt_status = secure(token)
 
         if jwt_status is False:
             return error_response("Unauthorized Access")
         request.state.user = jwt_status
-        
+
         return f(*args, **kwargs)
-    
+
     return check_token
 
-@api_version(1)
 @router.post("/register")
 async def register_user(user: schemas.UserCreate, request:Request) -> JSONResponse:
-    try:       
+    try:
         db_user = await Users.get_user_by_email(email=user.email)
         if db_user:
             return error_response("Email already registered")
@@ -49,9 +47,8 @@ async def register_user(user: schemas.UserCreate, request:Request) -> JSONRespon
     except Exception as e:
         print("Exception in register_user",traceback.print_exc())
         return error_response(msg=f"err in register_user : {e}",status_code=400)
-    
 
-@api_version(1)
+
 @router.post("/login")
 async def login_user(user: schemas.UserLogin) -> JSONResponse:
     try:
@@ -69,16 +66,14 @@ async def login_user(user: schemas.UserLogin) -> JSONResponse:
     except Exception as e:
         print("Exception in login_user",traceback.print_exc())
         return error_response(msg=f"err in login_user : {e}",status_code=400)
-    
 
 
-@api_version(1)
 @router.post("/forget-password")
-async def forget_password(request: Request,user: schemas.UserResetPassword, 
+async def forget_password(request: Request,user: schemas.UserResetPassword,
                     ) -> JSONResponse:
     try:
         token = await Users.set_reset_token(user.email)
-        
+
         if token:
             # reset_link = f"{request.url_for('reset_password_form')}?token={token}"
             reset_link = "link"
@@ -86,7 +81,7 @@ async def forget_password(request: Request,user: schemas.UserResetPassword,
                                                         {"request": request,
                                                         "reset_link": reset_link}).body.decode("utf-8")
             status = Email.send_email(user.email,html_template)
-            
+
             if status:
                 return success_response(f"Password reset email sent.")
             else:
@@ -97,11 +92,9 @@ async def forget_password(request: Request,user: schemas.UserResetPassword,
         print("Exception in forget_password",traceback.print_exc())
         return error_response(msg=f"err in forget_password : {e}",status_code=400)
 
-
-@api_version(1)
 @router.post("/verify-otp")
 async def verify_otp(request: Request,user: schemas.VerifyOTP) -> JSONResponse:
-    try:        
+    try:
         success = await Users.verify_otp(user.token)
         if success:
             return success_response("Valid OTP")
@@ -111,11 +104,10 @@ async def verify_otp(request: Request,user: schemas.VerifyOTP) -> JSONResponse:
         print("Exception in verify_otp",traceback.print_exc())
         return error_response(msg=f"err in verify_otp : {e}",status_code=400)
 
-@api_version(1)
 @router.post("/reset-password")
-async def reset_password(request: Request,user: schemas.UserSetNewPassword, 
+async def reset_password(request: Request,user: schemas.UserSetNewPassword,
                    ) -> JSONResponse:
-    try:        
+    try:
         success = await Users.reset_password(user.token, user.new_password)
         if success:
             return success_response("Password Reset Successful")

@@ -16,7 +16,7 @@ def generate_jwt(expiration_minutes=30) -> tuple[str,datetime.datetime]:
     date_format = "%Y-%m-%d %H:%M:%S"
     expiration_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=expiration_minutes)
     payload = {
-        'exp': expiration_time
+        "exp": expiration_time
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm=JWT_ALGORITHM)
     expiration_time = expiration_time.strftime(date_format)

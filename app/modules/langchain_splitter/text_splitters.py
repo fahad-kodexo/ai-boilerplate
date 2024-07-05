@@ -21,5 +21,5 @@ class Splitters:
             )
         else:
             raise ValueError
-        
+
         return splitter.split_documents(docs)

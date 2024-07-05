@@ -3,6 +3,7 @@
 *.sqlite3
 *.ipynb
 *.pyc
+*.pdf
 main.py
 test.py
 new.py
@@ -10,3 +11,5 @@ chromadb_old.py
 home.html
 *.yaml
 config.yaml
+*.bin
+*.pickle

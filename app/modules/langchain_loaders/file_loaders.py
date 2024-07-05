@@ -18,7 +18,7 @@ parser_client = LlamaParse(
 
 
 class Loaders:
-    encoding = 'utf-8'
+    encoding = "utf-8"
     file_extractor = {".pdf": parser_client}
     def __init__(self, loader_type:str = "llama_parser", webloader_type:str = "reader") -> None:
         self.loader_type = loader_type
@@ -28,18 +28,18 @@ class Loaders:
 
         full_url = "https://r.jina.ai/" + input_url
         if headers is None:
-            headers = {'Accept': 'application/json',
-                       'Authorization' : f'Bearer {JINA_READER_API_KEY}'}
-        
+            headers = {"Accept": "application/json",
+                       "Authorization" : f"Bearer {JINA_READER_API_KEY}"}
+
         try:
             response = requests.get(full_url, headers=headers)
             response.raise_for_status()
 
             if response.status_code == 200:
-                return response.json()['data']['content'],input_url  # Return the JSON response content
+                return response.json()["data"]["content"],input_url  # Return the JSON response content
             else:
                 return f"Request failed with status code {response.status_code}",None
-        
+
         except requests.exceptions.RequestException as e:
             return f"Request failed: {e}",None
 
@@ -70,6 +70,6 @@ class Loaders:
             return docs
         else:
             return None
-    
+
 
 
