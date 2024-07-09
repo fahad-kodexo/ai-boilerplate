@@ -31,6 +31,7 @@ class S3:
             print("Error in generate_presigned_url",e)
             return None
 
+
     @staticmethod
     def generate_presigned_post(object_name, folder_path):
         try:
@@ -47,6 +48,7 @@ class S3:
         except Exception as e:
             print("Error in generate_presigned_post",e)
             return None
+
 
     @staticmethod
     def download_file_from_s3(object_name,local_file_path):

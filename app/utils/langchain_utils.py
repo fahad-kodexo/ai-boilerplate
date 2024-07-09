@@ -3,13 +3,16 @@ from langchain_community.document_loaders import (TextLoader,
                                                   LLMSherpaFileLoader,
                                                   )
 
+
+
 from app.utils.constants import LLAMA_PARSER_API,JINA_READER_API_KEY
 from langchain.schema.document import Document
+from langchain_text_splitters import (RecursiveCharacterTextSplitter,
+                                      CharacterTextSplitter)
 from llama_index.core import SimpleDirectoryReader
 from llama_parse import LlamaParse
 import requests
-
-
+from typing import List
 # set up parser
 parser_client = LlamaParse(
     result_type="markdown",
@@ -23,6 +26,7 @@ class Loaders:
     def __init__(self, loader_type:str = "llama_parser", webloader_type:str = "reader") -> None:
         self.loader_type = loader_type
         self.webloader_type = webloader_type
+
 
     def fetch_content_with_reader(self, input_url, headers=None):
 
@@ -42,6 +46,7 @@ class Loaders:
 
         except requests.exceptions.RequestException as e:
             return f"Request failed: {e}",None
+
 
     def load(self,file_path:str = None,url_path:str = None) -> Document:
         if self.loader_type == "text" and file_path is not None:
@@ -72,4 +77,23 @@ class Loaders:
             return None
 
 
+class Splitters:
+    def __init__(self,splitter_type):
+        self.splitter_type = splitter_type
 
+
+    def splits(self,docs,chunk_size:int,chunk_overlap:int) -> List[str]:
+        if self.splitter_type.lower() == "recursive_splitter":
+            splitter =  RecursiveCharacterTextSplitter(
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap
+                )
+        elif self.splitter_type.lower() == "character_splitter":
+            splitter = CharacterTextSplitter(
+                chunk_size = chunk_size,
+                chunk_overlap=chunk_overlap
+            )
+        else:
+            raise ValueError
+
+        return splitter.split_documents(docs)

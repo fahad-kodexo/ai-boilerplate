@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from app.utils.utils import read_config
+from app.utils.config_utils import read_config
 
 load_dotenv()
 config_data = read_config()

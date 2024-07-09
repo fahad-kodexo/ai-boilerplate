@@ -1,60 +1,112 @@
-import random
-from passlib.context import CryptContext
-from . import  schemas
+import traceback
+from functools import wraps
 
-from app.database.database import MongoManager
+from fastapi import Request
+from fastapi.templating import Jinja2Templates
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from app.utils.email_utils import Email
+from app.user.db import Users
+from app.utils.jwt_utils import generate_jwt, secure
+from app.utils.responses import JSONResponse, error_response, success_response
+
+from . import schemas
+
+templates = Jinja2Templates(directory="app/templates")
+
+def require_token(f):
+    @wraps(f)
+    def check_token(*args, **kwargs):
+        request: Request = kwargs["request"]
+        authorization_header = request.headers.get("Authorization")
+        if authorization_header is None or not authorization_header.startswith("Bearer "):
+            return error_response("Authorization header missing or invalid")
+
+        token = authorization_header.split(" ")[1]
+        jwt_status = secure(token)
+
+        if jwt_status is False:
+            return error_response("Unauthorized Access")
+        request.state.user = jwt_status
+
+        return f(*args, **kwargs)
+
+    return check_token
 
 
-class Users(MongoManager):
-    @staticmethod
-    async def get_user_by_email(email:str):
-        async with Users() as db:
-            user_collection = db.get_collection("users")
-            return await user_collection.find_one({"email":email})
+async def register_user(user: schemas.UserCreate, request:Request) -> JSONResponse:
+    try:
+        db_user = await Users.get_user_by_email(email=user.email)
+        if db_user:
+            return error_response("Email already registered")
+        else:
+            db_user = await Users.create_user(user=user)
+            return success_response("User Created")
+    except Exception as e:
+        print("Exception in register_user",traceback.print_exc())
+        return error_response(msg=f"err in register_user : {e}")
 
-    def verify_password(plain_password, hashed_password) -> bool:
-        return pwd_context.verify(plain_password, hashed_password)
 
-    @staticmethod
-    async def generate_reset_token() -> str:
-        return str(random.randrange(100000,999999))
+async def login_user(user: schemas.UserLogin) -> JSONResponse:
+    try:
+        db_user = await Users.get_user_by_email(email=user.email)
+        if not db_user or not Users.verify_password(user.password,
+                                                    db_user["password"]):
+            return error_response("Incorrect email or password")
 
-    async def create_user(user: schemas.UserCreate):
-        async with Users() as db:
-            hashed_password = pwd_context.hash(user.password)
-            chat_collection = db.get_collection("users")
-            document = {
-                "email" : user.email,
-                "password" : hashed_password
-            }
-            await chat_collection.insert_one(document)
-            return True
+        token,expiration_time = generate_jwt()
 
-    async def verify_otp(token:str):
-        async with Users() as db:
-            user_collection = db.get_collection("users")
-            return await user_collection.find_one({"reset_token":token})
+        response = JSONResponse({"token":token}, 200)
+        response.set_cookie("token",token,expires=expiration_time)
 
-    async def reset_password(token: str, new_password: str) -> bool:
-        async with Users() as db:
-            user_collection = db.get_collection("users")
-            user = await user_collection.find_one({"reset_token":token})
-            if user:
-                hashed_password = pwd_context.hash(new_password)
-                await user_collection.update_one({"reset_token": token},
-                {"$set": {"reset_token": None , "password" : hashed_password}})
-                return True
-            return False
+        return response
+    except Exception as e:
+        print("Exception in login_user",traceback.print_exc())
+        return error_response(msg=f"err in login_user : {e}")
 
-    async def set_reset_token(email: str):
-        async with Users() as db:
-            user_collection = db.get_collection("users")
-            user = await Users.get_user_by_email(email)
-            if user:
-                token = await Users.generate_reset_token()
-                await user_collection.update_one({"email": user["email"]},
-                {"$set": {"reset_token": token}})
-                return token
-            return None
+
+async def forget_password(request: Request,user: schemas.UserResetPassword,
+                    ) -> JSONResponse:
+    try:
+        token = await Users.set_reset_token(user.email)
+
+        if token:
+            reset_link = "link"
+            html_template = templates.TemplateResponse("reset_password.html",
+                                                        {"request": request,
+                                                        "reset_link": reset_link}).body.decode("utf-8")
+            status = Email.send_email(user.email,html_template)
+
+            if status:
+                return success_response(f"Password reset email sent.")
+            else:
+                return error_response(f"Password reset email not send.")
+        else:
+            return error_response("Email Not Found")
+    except Exception as e:
+        print("Exception in forget_password",traceback.print_exc())
+        return error_response(msg=f"err in forget_password : {e}")
+
+
+async def verify_otp(request: Request,user: schemas.VerifyOTP) -> JSONResponse:
+    try:
+        success = await Users.verify_otp(user.token)
+        if success:
+            return success_response("Valid OTP")
+        else:
+            return error_response("Invalid OTP")
+    except Exception as e:
+        print("Exception in verify_otp",traceback.print_exc())
+        return error_response(msg=f"err in verify_otp : {e}")
+
+
+async def reset_password(request: Request,user: schemas.UserSetNewPassword,
+                   ) -> JSONResponse:
+    try:
+        success = await Users.reset_password(user.token, user.new_password)
+        if success:
+            return success_response("Password Reset Successful")
+        else:
+            return error_response("Invalid Reset Token")
+    except Exception as e:
+        print("Exception in reset_password",traceback.print_exc())
+        return error_response(msg=f"err in reset_password : {e}")
