@@ -43,7 +43,7 @@ async def register_user(user: schemas.UserCreate, request:Request) -> JSONRespon
             return success_response("User Created")
     except Exception as e:
         print("Exception in register_user",traceback.print_exc())
-        return error_response(msg=f"err in register_user : {e}")
+        return error_response(repr(e))
 
 
 async def login_user(user: schemas.UserLogin) -> JSONResponse:
@@ -61,7 +61,7 @@ async def login_user(user: schemas.UserLogin) -> JSONResponse:
         return response
     except Exception as e:
         print("Exception in login_user",traceback.print_exc())
-        return error_response(msg=f"err in login_user : {e}")
+        return error_response(repr(e))
 
 
 async def forget_password(request: Request,user: schemas.UserResetPassword,
@@ -84,7 +84,7 @@ async def forget_password(request: Request,user: schemas.UserResetPassword,
             return error_response("Email Not Found")
     except Exception as e:
         print("Exception in forget_password",traceback.print_exc())
-        return error_response(msg=f"err in forget_password : {e}")
+        return error_response(repr(e))
 
 
 async def verify_otp(request: Request,user: schemas.VerifyOTP) -> JSONResponse:
@@ -96,7 +96,7 @@ async def verify_otp(request: Request,user: schemas.VerifyOTP) -> JSONResponse:
             return error_response("Invalid OTP")
     except Exception as e:
         print("Exception in verify_otp",traceback.print_exc())
-        return error_response(msg=f"err in verify_otp : {e}")
+        return error_response(repr(e))
 
 
 async def reset_password(request: Request,user: schemas.UserSetNewPassword,
@@ -109,4 +109,4 @@ async def reset_password(request: Request,user: schemas.UserSetNewPassword,
             return error_response("Invalid Reset Token")
     except Exception as e:
         print("Exception in reset_password",traceback.print_exc())
-        return error_response(msg=f"err in reset_password : {e}")
+        return error_response(repr(e))

@@ -56,5 +56,5 @@ class S3:
             s3_client.download_file(object_name, local_file_path)
         except Exception as e:
             print("Error in download_file",e)
-            return False
+            return None
 

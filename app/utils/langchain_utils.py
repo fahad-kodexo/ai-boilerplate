@@ -29,13 +29,12 @@ class Loaders:
 
 
     def fetch_content_with_reader(self, input_url, headers=None):
-
-        full_url = "https://r.jina.ai/" + input_url
-        if headers is None:
-            headers = {"Accept": "application/json",
-                       "Authorization" : f"Bearer {JINA_READER_API_KEY}"}
-
         try:
+            full_url = "https://r.jina.ai/" + input_url
+            if headers is None:
+                headers = {"Accept": "application/json",
+                        "Authorization" : f"Bearer {JINA_READER_API_KEY}"}
+
             response = requests.get(full_url, headers=headers)
             response.raise_for_status()
 
@@ -49,31 +48,35 @@ class Loaders:
 
 
     def load(self,file_path:str = None,url_path:str = None) -> Document:
-        if self.loader_type == "text" and file_path is not None:
-            return TextLoader(file_path=file_path,encoding=Loaders.encoding).load()
-        elif self.loader_type == "pypdf" and file_path is not None:
-            return PyPDFDirectoryLoader(file_path).load()
-        elif self.loader_type == "llmsherpa" and file_path is not None:
-            return LLMSherpaFileLoader(file_path).load()
-        elif self.loader_type == "llama_parser" and file_path is not None:
-            documents = SimpleDirectoryReader(input_files=[file_path],
-                                               file_extractor=Loaders.file_extractor).load_data()
-            text = documents[0].text
-            metadata = documents[0].metadata
-            # Wrapping the data into the Langchain Document Class
-            docs = [Document(page_content=text,
-                             metadata=metadata)]
-            return docs
-        elif self.webloader_type == "reader" and url_path is not None:
-            url_content,url = self.fetch_content_with_reader(url_path)
-            if url is None:
-                raise ValueError
-            print("url_content",type(url_content))
-            print("Actual Data",url_content)
-            docs = [Document(page_content=url_content)]
-            print("docs",docs)
-            return docs
-        else:
+        try:
+            if self.loader_type == "text" and file_path is not None:
+                return TextLoader(file_path=file_path,encoding=Loaders.encoding).load()
+            elif self.loader_type == "pypdf" and file_path is not None:
+                return PyPDFDirectoryLoader(file_path).load()
+            elif self.loader_type == "llmsherpa" and file_path is not None:
+                return LLMSherpaFileLoader(file_path).load()
+            elif self.loader_type == "llama_parser" and file_path is not None:
+                documents = SimpleDirectoryReader(input_files=[file_path],
+                                                file_extractor=Loaders.file_extractor).load_data()
+                text = documents[0].text
+                metadata = documents[0].metadata
+                # Wrapping the data into the Langchain Document Class
+                docs = [Document(page_content=text,
+                                metadata=metadata)]
+                return docs
+            elif self.webloader_type == "reader" and url_path is not None:
+                url_content,url = self.fetch_content_with_reader(url_path)
+                if url is None:
+                    raise ValueError
+                print("url_content",type(url_content))
+                print("Actual Data",url_content)
+                docs = [Document(page_content=url_content)]
+                print("docs",docs)
+                return docs
+            else:
+                return None
+        except Exception as e:
+            print("Error in load",e)
             return None
 
 
@@ -83,17 +86,21 @@ class Splitters:
 
 
     def splits(self,docs,chunk_size:int,chunk_overlap:int) -> List[str]:
-        if self.splitter_type.lower() == "recursive_splitter":
-            splitter =  RecursiveCharacterTextSplitter(
-                chunk_size=chunk_size,
-                chunk_overlap=chunk_overlap
+        try:
+            if self.splitter_type.lower() == "recursive_splitter":
+                splitter =  RecursiveCharacterTextSplitter(
+                    chunk_size=chunk_size,
+                    chunk_overlap=chunk_overlap
+                    )
+            elif self.splitter_type.lower() == "character_splitter":
+                splitter = CharacterTextSplitter(
+                    chunk_size = chunk_size,
+                    chunk_overlap=chunk_overlap
                 )
-        elif self.splitter_type.lower() == "character_splitter":
-            splitter = CharacterTextSplitter(
-                chunk_size = chunk_size,
-                chunk_overlap=chunk_overlap
-            )
-        else:
-            raise ValueError
+            else:
+                raise ValueError
 
-        return splitter.split_documents(docs)
+            return splitter.split_documents(docs)
+        except Exception as e:
+            print("Error in splits",e)
+            return None

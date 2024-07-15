@@ -18,20 +18,22 @@ def upload_file(request: Request,upload_file : UploadFile,
         if status_code == 204:
             return success_response(msg="File Uploaded")
         else:
-            return error_response(msg="File Not Uploaded")
+            raise Exception
     except Exception as e:
         print("Exception in upload_file",traceback.print_exc())
-        return error_response(msg=f"err in upload_file : {e}")
+        return error_response(repr(e))
 
 
 @require_token
-def download_file(request: Request,download_file : DownloadFile,
-                        ):
+def download_file(request: Request,
+                  download_file : DownloadFile):
     try:
         download_url = S3.generate_presigned_url(
             download_file.folder_path+"/"+download_file.file_path
             )
+        if download_url is None:
+            raise Exception
         return success_response(msg=download_url)
     except Exception as e:
         print("Exception in download_file",traceback.print_exc())
-        return error_response(msg=f"err in download_file : {e}")
+        return error_response(repr(e))

@@ -20,7 +20,7 @@ class BaseVectorDB(ABC):
 
     @classmethod
     @abstractmethod
-    def retrieve_data_with_chat_history(self,retriever,query) -> str : ...
+    def retrieve_data_with_chat_history(self,retriever,query,sid) -> str : ...
 
 
     @classmethod
@@ -31,3 +31,10 @@ class BaseVectorDB(ABC):
     @classmethod
     @abstractmethod
     def get_retriever(self,collection) -> VectorStoreRetriever : ...
+
+
+    # @classmethod
+    # @abstractmethod
+    # def retrieve_data_with_assistant(self,retriever,query,sid) -> str : ...
+
+

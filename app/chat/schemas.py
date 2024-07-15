@@ -11,3 +11,4 @@ class AddText(BaseModel):
 class Chat(BaseModel):
     user_query : str
     collection_name : str
+

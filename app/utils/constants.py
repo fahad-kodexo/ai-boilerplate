@@ -10,6 +10,7 @@ OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 SECRET_KEY = os.getenv("SECRET_KEY")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
 STRIPE_KEY = os.getenv("STRIPE_KEY")
+ENDPOINT_SECRET = os.getenv("ENDPOINT_SECRET")
 SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 AWS_REGION = os.getenv("AWS_REGION")
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
@@ -21,10 +22,10 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 JINA_READER_API_KEY = os.getenv("JINA_READER_API_KEY")
 MONGO_URI = os.getenv("MONGO_URI")
 DB_NAME = os.getenv("DB_NAME")
+SUCCESS_URL = os.getenv("SUCCESS_URL")
 
 EMBEDDING_MODEL = config_data["EMBEDDING_MODEL"]
 LLM_MODEL  = config_data["LLM_MODEL"]
-EMAIL_SERVICE = config_data["EMAIL_SERVICE"]
 SUBJECT = config_data["SUBJECT"]
 CHARSET = config_data["CHARSET"]
 CHUNK_SIZE = config_data["CHUNK_SIZE"]
@@ -32,6 +33,10 @@ CHUNK_OVERLAP = config_data["CHUNK_OVERLAP"]
 SPLITTER = config_data["SPLITTER"]
 TEMPERATURE = config_data["TEMPERATURE"]
 LOADER = config_data["LOADER"]
+
+
+ROLE = 'user'
+ASSISTANT_NAME = 'Question answering Chatbot'
 
 
 contextualize_q_system_prompt = (
@@ -52,3 +57,9 @@ system_prompt = (
     "{context}"
 )
 
+qa_prompt = """You are an assistant for question-answering tasks. \
+Use the following pieces of retrieved context to answer the question. \
+If you don't know the answer, just say that you don't know. \
+Use three sentences maximum and keep the answer concise.\
+
+{context}"""

@@ -6,9 +6,7 @@ from .views import (register_user,
                     verify_otp,
                     reset_password)
 
-auth_router = APIRouter()
-
-auth_router.prefix("/user")
+auth_router = APIRouter(prefix="/user")
 
 auth_router.post("/register")(register_user)
 auth_router.post("/login")(login_user)
