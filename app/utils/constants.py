@@ -35,9 +35,9 @@ TEMPERATURE = config_data["TEMPERATURE"]
 LOADER = config_data["LOADER"]
 
 
-ROLE = 'user'
-ASSISTANT_NAME = 'Question answering Chatbot'
-
+ROLE = "user"
+ASSISTANT_NAME = "Question answering Chatbot"
+HISTORY_COLLECTION_NAME = "chat_historyy"
 
 contextualize_q_system_prompt = (
     "Given a chat history and the latest user question "

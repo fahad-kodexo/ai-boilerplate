@@ -16,7 +16,7 @@ class Customer:
         except Exception as e:
             print("Exception in create_customer",e)
             return None
-    
+
     @staticmethod
     def retrieve_customer(customer_id:str):
         try:
@@ -54,7 +54,7 @@ class Payment:
         except Exception as e:
             print("Exception in retrieve_payment",e)
             return None
-            
+
     @staticmethod
     def list_all_payments():
         try:

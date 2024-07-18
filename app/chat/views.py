@@ -5,10 +5,10 @@ from fastapi import Request
 from app.chat.schemas import AddDocument,AddText
 from app.utils.s3_utils import S3
 from app.vector_db_operations.chromadb import ChromaDb
-from app.user.views import require_token
+from app.utils.jwt_utils import require_token
 from app.utils.responses import error_response, success_response
 
-
+@require_token
 def add_documents(request: Request,
                   upload_data : AddDocument):
     try:
@@ -32,6 +32,7 @@ def add_documents(request: Request,
         return error_response(repr(e))
 
 
+@require_token
 def add_texts(request: Request,
               upload_text : AddText):
     try:

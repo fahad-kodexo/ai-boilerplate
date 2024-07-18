@@ -6,33 +6,16 @@ from fastapi.templating import Jinja2Templates
 
 from app.utils.email_utils import Email
 from app.user.db import Users
-from app.utils.jwt_utils import generate_jwt, secure
+from app.utils.jwt_utils import generate_jwt
 from app.utils.responses import JSONResponse, error_response, success_response
+from app.utils.jwt_utils import require_token
 
 from . import schemas
 
 templates = Jinja2Templates(directory="app/templates")
 
-def require_token(f):
-    @wraps(f)
-    def check_token(*args, **kwargs):
-        request: Request = kwargs["request"]
-        authorization_header = request.headers.get("Authorization")
-        if authorization_header is None or not authorization_header.startswith("Bearer "):
-            return error_response("Authorization header missing or invalid")
 
-        token = authorization_header.split(" ")[1]
-        jwt_status = secure(token)
-
-        if jwt_status is False:
-            return error_response("Unauthorized Access")
-        request.state.user = jwt_status
-
-        return f(*args, **kwargs)
-
-    return check_token
-
-
+@require_token
 async def register_user(user: schemas.UserCreate, request:Request) -> JSONResponse:
     try:
         db_user = await Users.get_user_by_email(email=user.email)
@@ -45,7 +28,7 @@ async def register_user(user: schemas.UserCreate, request:Request) -> JSONRespon
         print("Exception in register_user",traceback.print_exc())
         return error_response(repr(e))
 
-
+@require_token
 async def login_user(user: schemas.UserLogin) -> JSONResponse:
     try:
         db_user = await Users.get_user_by_email(email=user.email)
@@ -63,7 +46,7 @@ async def login_user(user: schemas.UserLogin) -> JSONResponse:
         print("Exception in login_user",traceback.print_exc())
         return error_response(repr(e))
 
-
+@require_token
 async def forget_password(request: Request,user: schemas.UserResetPassword,
                     ) -> JSONResponse:
     try:
@@ -86,7 +69,7 @@ async def forget_password(request: Request,user: schemas.UserResetPassword,
         print("Exception in forget_password",traceback.print_exc())
         return error_response(repr(e))
 
-
+@require_token
 async def verify_otp(request: Request,user: schemas.VerifyOTP) -> JSONResponse:
     try:
         success = await Users.verify_otp(user.token)
@@ -98,15 +81,18 @@ async def verify_otp(request: Request,user: schemas.VerifyOTP) -> JSONResponse:
         print("Exception in verify_otp",traceback.print_exc())
         return error_response(repr(e))
 
-
+@require_token
 async def reset_password(request: Request,user: schemas.UserSetNewPassword,
                    ) -> JSONResponse:
     try:
-        success = await Users.reset_password(user.token, user.new_password)
-        if success:
-            return success_response("Password Reset Successful")
+        if user.new_password == user.confirm_password:
+            success = await Users.reset_password(user.token, user.new_password)
+            if success:
+                return success_response("Password Reset Successful")
+            else:
+                return error_response("Invalid Reset Token")
         else:
-            return error_response("Invalid Reset Token")
+            return error_response("Invalid New and Confirm Password")
     except Exception as e:
         print("Exception in reset_password",traceback.print_exc())
         return error_response(repr(e))

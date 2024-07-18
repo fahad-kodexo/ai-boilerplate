@@ -7,20 +7,20 @@ from openai import AssistantEventHandler
 
 client = OpenAI(api_key=OPENAI_KEY)
 
-class EventHandler(AssistantEventHandler):    
+class EventHandler(AssistantEventHandler):
   @override
   def on_text_created(self, text) -> None:
     print(f"\nassistant > ", end="", flush=True)
-      
+
   @override
-  def on_text_delta(self, delta, snapshot):
+  def on_text_delta(self, delta, snapshot):\
     print(delta.value,flush=True,end = "")
-      
+
   def on_tool_call_created(self, tool_call):
     print(f"\nassistant > {tool_call.type}\n", flush=True)
-  
+
   def on_tool_call_delta(self, delta, snapshot):
-    if delta.type == 'code_interpreter':
+    if delta.type == "code_interpreter":
       if delta.code_interpreter.input:
         print(delta.code_interpreter.input, end="", flush=True)
       if delta.code_interpreter.outputs:
@@ -44,7 +44,7 @@ class Assistant:
         except Exception as e:
           print("Error in create_assistant",e)
           return None
-    
+
 
     @staticmethod
     async def upload_files(vector_store_name,file_paths,assistant_id):
@@ -52,12 +52,12 @@ class Assistant:
         vector_store = client.beta.vector_stores.create(name=vector_store_name)
 
         file_streams = [open(path, "rb") for path in file_paths]
-        
+
         file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
         vector_store_id=vector_store.id, files=file_streams
         )
-        
-        assistant = client.beta.assistants.update(
+
+        _ = client.beta.assistants.update(
         assistant_id=assistant_id,
         tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
         )
@@ -71,21 +71,20 @@ class Assistant:
     @staticmethod
     async def create_thread():
         try:
-          thread = client.beta.threads.create().model_dump_json()
-          return thread
+          return client.beta.threads.create().model_dump_json()
         except Exception as e:
           print("Error in create_thread",e)
-          return None    
-        
+          return None
+
     @staticmethod
     async def ask_query(query:str,thread_id:str,assistant_id:str,sio):
       try:
         _ = client.beta.threads.messages.create(
                   thread_id = thread_id,
-                  role = 'user',
+                  role = "user",
                   content = query
               )
-         
+
         with client.beta.threads.runs.stream(
               thread_id=thread_id,
               assistant_id=assistant_id,
@@ -99,7 +98,7 @@ class Assistant:
                   await emit_response(sio,"query_response",stream_text)
 
               return True
-                  
+
       except Exception as e:
         print("Error in ask_query",traceback.print_exc())
         await emit_response(sio,"query_response","")

@@ -7,6 +7,9 @@ from app.utils.constants import (
     CHUNK_SIZE,
     CHUNK_OVERLAP,
     TEMPERATURE,
+    MONGO_URI,
+    DB_NAME,
+    HISTORY_COLLECTION_NAME
 )
 from app.vector_db_operations.base import BaseVectorDB
 from app.vector_db_operations.prompt_templates import (
@@ -16,30 +19,30 @@ from app.vector_db_operations.prompt_templates import (
 from app.chat_history.db import ChatHistory
 
 from langchain_chroma import Chroma
-from langchain_openai import ChatOpenAI,OpenAIEmbeddings
+from langchain_openai import ChatOpenAI
 from app.utils.langchain_utils import Loaders
 from app.utils.langchain_utils import Splitters
 from langchain_community.embeddings.sentence_transformer import (
     SentenceTransformerEmbeddings,
 )
 
-from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_community.chat_message_histories.mongodb import MongoDBChatMessageHistory
 
 import warnings
+import time
 
 warnings.filterwarnings("ignore")
 
 
 class ChromaDb(BaseVectorDB):
     embedding = SentenceTransformerEmbeddings(model_name=EMBEDDING_MODEL)
-    # embedding = OpenAIEmbeddings()
     llm = ChatOpenAI(model_name=LLM_MODEL, temperature=TEMPERATURE, api_key=OPENAI_KEY)
-    store = {}
+    question_answer_chain = create_stuff_documents_chain(llm, QA_PROMPT)
 
     def __init__(self, collection_name):
         self.client = Chroma(
@@ -88,6 +91,7 @@ class ChromaDb(BaseVectorDB):
             print("Exception in get_total_vector_count",e)
             return None
 
+
     def get_retriever(self, collection_name):
         try:
             return self.client.as_retriever(
@@ -97,28 +101,24 @@ class ChromaDb(BaseVectorDB):
             print("Exception in get_retriever",e)
             return None
 
-    def get_session_history(self, session_id: str) -> BaseChatMessageHistory:
-        if session_id not in self.store:
-            self.store[session_id] = ChatMessageHistory()
-        return self.store[session_id]
 
+    def get_session_history(self, session_id: str) -> BaseChatMessageHistory:
+        return MongoDBChatMessageHistory(
+            connection_string=MONGO_URI,
+            session_id = session_id,
+            database_name = DB_NAME,
+            collection_name=HISTORY_COLLECTION_NAME,
+            create_index=True
+        )
 
     async def retrieve_data_with_chat_history(self, retriever, query, sid, user_id):
         try:
-            await ChatHistory().insert_chat_history(
-                user_id,
-                query,
-                'user'
-            )
-            
             history_aware_retriever = create_history_aware_retriever(
                 self.llm, retriever, CONTEXTUALIZE_Q_PROMPT
             )
-            question_answer_chain = create_stuff_documents_chain(self.llm, QA_PROMPT)
             rag_chain = create_retrieval_chain(
-                history_aware_retriever, question_answer_chain
+                history_aware_retriever, self.question_answer_chain
             )
-
             conversational_rag_chain = RunnableWithMessageHistory(
                 rag_chain,
                 self.get_session_history,
@@ -126,22 +126,23 @@ class ChromaDb(BaseVectorDB):
                 history_messages_key="chat_history",
                 output_messages_key="answer",
             )
-            
+
             query_response = conversational_rag_chain.invoke(
                 {"input": query},
-                config={"configurable": {"session_id": str(sid)}},
+                config={"configurable": {"session_id": str(user_id)}},
             )["answer"]
-            
+
             await ChatHistory().insert_chat_history(
                 user_id,
+                query,
                 query_response,
-                'assistant'
             )
-            
+
             return query_response
         except Exception as e:
             print("Exception in retrieve_data_with_chat_history",e)
             return None
+
 
     def delete_collection(self) -> bool:
         try:

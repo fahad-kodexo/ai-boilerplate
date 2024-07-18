@@ -1,5 +1,4 @@
 .env
-*.sqlite3
 *.ipynb
 *.pyc
 *.pdf
@@ -10,5 +9,4 @@ chromadb_old.py
 home.html
 *.yaml
 config.yaml
-*.bin
 *.pickle

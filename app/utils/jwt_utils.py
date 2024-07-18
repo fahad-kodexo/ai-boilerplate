@@ -1,4 +1,7 @@
 import datetime
+from functools import wraps
+from fastapi import Request
+from app.utils.responses import error_response
 
 import jwt
 
@@ -26,3 +29,22 @@ def generate_jwt(expiration_minutes=30) -> tuple[str,datetime.datetime]:
     except Exception as e:
         print("Error in generate_jwt",e)
         return None
+
+def require_token(f):
+    @wraps(f)
+    def check_token(*args, **kwargs):
+        request: Request = kwargs["request"]
+        authorization_header = request.headers.get("Authorization")
+        if authorization_header is None or not authorization_header.startswith("Bearer "):
+            return error_response("Authorization header missing or invalid")
+
+        token = authorization_header.split(" ")[1]
+        jwt_status = secure(token)
+
+        if jwt_status is False:
+            return error_response("Unauthorized Access")
+        request.state.user = jwt_status
+
+        return f(*args, **kwargs)
+
+    return check_token

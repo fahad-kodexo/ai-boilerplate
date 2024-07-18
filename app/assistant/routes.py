@@ -6,6 +6,6 @@ from .views import (create_assistant,
 
 assistant_router = APIRouter(prefix="/assistant")
 
-assistant_router.post('/create_assistant')(create_assistant)
+assistant_router.post("/create_assistant")(create_assistant)
 assistant_router.post("/create_thread")(create_thread)
 assistant_router.post("/upload_files")(upload_files)

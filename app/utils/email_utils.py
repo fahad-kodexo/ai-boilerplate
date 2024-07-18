@@ -6,6 +6,8 @@ from app.utils.constants import (
     SENDGRID_API_KEY,
 )
 
+sg = SendGridAPIClient(api_key=SENDGRID_API_KEY)
+
 class Email:
     @staticmethod
     def send_email(recipient:str,html_template:str):
@@ -15,7 +17,6 @@ class Email:
             to_emails=recipient,
             subject=SUBJECT,
             html_content=html_template)
-            sg = SendGridAPIClient(api_key=SENDGRID_API_KEY)
             response = sg.send(message)
             return True
         except Exception as e:
