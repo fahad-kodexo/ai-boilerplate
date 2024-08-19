@@ -2,7 +2,6 @@ import traceback
 import socketio
 from app.chat.schemas import Chat
 from app.utils.responses import emit_response
-from app.utils.jwt_utils import require_token
 from app.vector_db_operations.chromadb import ChromaDb
 from app.vector_db_operations.openai_assistant import Assistant
 
@@ -11,7 +10,6 @@ sio = socketio.AsyncServer(async_mode="asgi",cors_allowed_origins="*")
 
 
 @sio.on("user_query")
-@require_token
 async def user_query(sid, chat:Chat):
     try:
         user_query = chat["user_query"]
@@ -34,7 +32,6 @@ async def user_query(sid, chat:Chat):
 
 
 @sio.on("user_assistant")
-@require_token
 async def user_assistant(sid, assistant:Assistant):
     try:
         user_query = assistant["user_query"]

@@ -5,10 +5,9 @@ from fastapi import Request
 from app.chat.schemas import AddDocument,AddText
 from app.utils.s3_utils import S3
 from app.vector_db_operations.chromadb import ChromaDb
-from app.utils.jwt_utils import require_token
-from app.utils.responses import error_response, success_response
+from app.utils.responses import error_response, success_response, unauthorized_response
 
-@require_token
+
 def add_documents(request: Request,
                   upload_data : AddDocument):
     try:
@@ -24,15 +23,15 @@ def add_documents(request: Request,
             if status:
                 return success_response(msg="File Added in Db")
             else:
-                raise Exception
+                return unauthorized_response("Document Not Added in the Vector Database")
         else:
-            raise Exception
+            return unauthorized_response("File Not Uploaded on S3")
     except Exception as e:
         print("Exception in add_documents",traceback.print_exc())
         return error_response(repr(e))
 
 
-@require_token
+
 def add_texts(request: Request,
               upload_text : AddText):
     try:
@@ -40,9 +39,9 @@ def add_texts(request: Request,
         status = vector_client.add_texts(upload_text.text,
                                          upload_text.user_id)
         if status:
-            return success_response(msg="Data Added to Db!")
+            return success_response(msg="Data Added to Db")
         else:
-            raise Exception
+            return unauthorized_response("Data Not Added in Vector Store")
     except Exception as e:
         print("Exception in add_texts",traceback.print_exc())
         return error_response(repr(e))

@@ -1,4 +1,4 @@
-from app.utils.responses import success_response,error_response
+from app.utils.responses import success_response,error_response, not_found_response
 from app.utils.constants import STRIPE_KEY,ENDPOINT_SECRET,SUCCESS_URL
 from app.utils.stripe_utils import Customer
 from fastapi.templating import Jinja2Templates
@@ -96,7 +96,7 @@ async def webhook(
         else:
             print(f"Unhandled event type {event.type}")
 
-        return success_response("Success")
+        return success_response("Handled Event Successfully")
 
     except Exception as e:
         print(traceback.print_exc())
@@ -114,7 +114,7 @@ async def create_portal_session(request:Request,portal_session : schemas.PortalS
             return_url=return_url,
         )
         response = {"sessionUrl": portal_session["url"]}
-        return success_response(response)
+        return success_response(msg="Portal Session Found",data = response)
     except Exception as e:
         print("Error in create_portal_session",e)
         return error_response(repr(e))
@@ -134,7 +134,7 @@ async def create_customer(customer : schemas.Customer):
             "Customer Created",
             customer.email
         )
-        return success_response({"customer_id" : customer_id})
+        return success_response(msg="Customer Created",data = {"customer_id" : customer_id})
     except Exception as e:
         print("Error in create_customer",e)
         return error_response(repr(e))

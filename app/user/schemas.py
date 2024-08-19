@@ -4,17 +4,22 @@ from fastapi.exceptions import HTTPException
 
 class EmailValidatorModel(BaseModel):
     email: str
-    
+
     @field_validator("email")
     def validate_email(cls, email):
-        if "@" not in email:
-            raise HTTPException(detail="Invalid Email Address",
-                                status_code=status.HTTP_400_BAD_REQUEST,
+        from application import ValidatorException
+        if "@" not in email or "." not in email:
+            raise ValidatorException(
+                400,
+                "Invalid Email",
+                error=None
             )
         return email
 
 class UserCreate(EmailValidatorModel):
     password: str
+    first_name : str
+    last_name : str
 
 class UserLogin(EmailValidatorModel):
     password: str

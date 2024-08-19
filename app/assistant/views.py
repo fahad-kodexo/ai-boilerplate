@@ -1,44 +1,34 @@
-from app.utils.responses import success_response,error_response
+from app.utils.responses import success_response,error_response,unauthorized_response
 from app.vector_db_operations.openai_assistant import Assistant
-from app.utils.jwt_utils import require_token
 from app.utils.s3_utils import S3
 from fastapi import Request
 from . import schemas
 import os
 import traceback
 
-@require_token
 async def create_assistant(request: Request):
     try:
         assistant = await Assistant.create_assistant()
         if assistant is None:
-            raise Exception
+            return unauthorized_response("Assistant Not Created")
         else:
-            response = {
-                "assistant": assistant
-                }
-        return success_response(response)
+            return success_response("Assistant Created",assistant)
     except Exception as e:
         print(traceback.print_exc())
         return error_response(repr(e))
 
-@require_token
 async def create_thread(request: Request):
     try:
         thread = await Assistant.create_thread()
         if thread is None:
-            raise Exception
+            return unauthorized_response("Thread Not Created")
         else:
-            response = {
-                "thread": thread
-                }
+            return success_response("Thread Created!",data = thread)
 
-        return success_response(response)
     except Exception as e:
         print(traceback.print_exc())
         return error_response(repr(e))
 
-@require_token
 async def upload_files(request: Request,file : schemas.UploadDocument):
     try:
         local_directory_path = f"app/data/{file.user_id}/"
@@ -53,10 +43,13 @@ async def upload_files(request: Request,file : schemas.UploadDocument):
                 assistant_id = file.assistant_id
             )
             if response is None:
-                raise Exception
+                return unauthorized_response("File Not Uploaded on Vector Store")
+            else: 
+                return success_response("File Uploaded Successfully")
         else:
-            raise Exception
-        return success_response(response)
+            return unauthorized_response("File Not Uploaded on S3")
+        
+        
     except Exception as e:
         print(traceback.print_exc())
         return error_response(repr(e))

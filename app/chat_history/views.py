@@ -4,11 +4,9 @@ import traceback,json
 from fastapi import Request
 from app.chat_history.schemas import UserChat
 from app.chat_history.db import ChatHistory
-from app.utils.responses import error_response, success_response
-from app.utils.jwt_utils import require_token
+from app.utils.responses import error_response, success_response,unauthorized_response,not_found_response
 
 
-@require_token
 async def get_chat_history(request: Request):
     try:
         user_id = str(request.query_params.get("user_id"))
@@ -16,16 +14,17 @@ async def get_chat_history(request: Request):
         user_chat_history = await ChatHistory().get_chat_history(
                 user_id
         )
+        if not user_chat_history:
+            return not_found_response(msg = "User History Not Found")
+        
         response = {"chat_history" : user_chat_history}
-
-        return success_response(json.loads(json_util.dumps(response)))
+        return success_response("Chat History Found",json.loads(json_util.dumps(response)))
 
     except Exception as e:
         print("Exception in get_chat_history",traceback.print_exc())
         return error_response(repr(e))
 
 
-@require_token
 async def create_chat_user(request: Request,
               user_chat : UserChat):
     try:
@@ -40,7 +39,6 @@ async def create_chat_user(request: Request,
         return error_response(repr(e))
 
 
-@require_token
 async def get_sessions_by_email(request: Request):
     try:
         email = str(request.query_params.get("email"))
@@ -51,7 +49,7 @@ async def get_sessions_by_email(request: Request):
 
         response = {"user_session_ids" : user_session}
 
-        return success_response(json.loads(json_util.dumps(response)))
+        return success_response("Sessions Found",json.loads(json_util.dumps(response)))
 
     except Exception as e:
         print("Exception in get_sesssions_by_email",e)
