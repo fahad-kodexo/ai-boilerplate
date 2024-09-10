@@ -1,5 +1,5 @@
-
 from fastapi.responses import JSONResponse
+
 
 def success_response(msg, data=None):
     response_content = {"message": msg, "data": data, "status_code": 200}
@@ -22,12 +22,8 @@ def unauthorized_response(msg):
 
 
 def validator_response(msg):
-    response_content = {
-        "error" : None,
-        "message" : msg,
-        "status_code" : 400
-    }
-    return JSONResponse(content=response_content,status_code=400)
+    response_content = {"error": None, "message": msg, "status_code": 400}
+    return JSONResponse(content=response_content, status_code=400)
 
 
 def error_response(exception=None):
@@ -39,10 +35,5 @@ def error_response(exception=None):
     return JSONResponse(content=response_content, status_code=500)
 
 
-
-async def emit_response(sio,event_name:str,message:str):
-    await sio.emit(
-        event_name,
-        {"message" : message
-         }
-    )
+async def emit_response(sio, event_name: str, message: str):
+    await sio.emit(event_name, {"message": message})

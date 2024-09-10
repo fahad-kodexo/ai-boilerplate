@@ -15,7 +15,7 @@ SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 AWS_REGION = os.getenv("AWS_REGION")
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
 ACCESS_KEY = os.getenv("ACCESS_KEY")
-SECRET_ACCESS_KEY  = os.getenv("SECRET_ACCESS_KEY")
+SECRET_ACCESS_KEY = os.getenv("SECRET_ACCESS_KEY")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 LLAMA_PARSER_API = os.getenv("LLAMA_PARSER_API")
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
@@ -25,7 +25,7 @@ DB_NAME = os.getenv("DB_NAME")
 SUCCESS_URL = os.getenv("SUCCESS_URL")
 
 EMBEDDING_MODEL = config_data["EMBEDDING_MODEL"]
-LLM_MODEL  = config_data["LLM_MODEL"]
+LLM_MODEL = config_data["LLM_MODEL"]
 SUBJECT = config_data["SUBJECT"]
 CHARSET = config_data["CHARSET"]
 CHUNK_SIZE = config_data["CHUNK_SIZE"]
@@ -40,7 +40,7 @@ ASSISTANT_NAME = "Question answering Chatbot"
 HISTORY_COLLECTION_NAME = "chat_historyy"
 
 PROMPT_DICT = {
-            "bot": """
+    "bot": """
             Answer the question based on the following context and conversation_history : 
 
             context : {prompt}
@@ -54,4 +54,5 @@ PROMPT_DICT = {
             <conversation_history>
             {input}
 
-            """}
+            """
+}

@@ -1,4 +1,4 @@
-from fastapi import FastAPI,HTTPException,Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.chat.chatbot import sio
@@ -23,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class TokenException(HTTPException):
     def __init__(self, status_code: int, detail: str, error: str = ""):
         super().__init__(status_code=status_code, detail=detail)
@@ -34,7 +35,6 @@ class TokenException(HTTPException):
             "message": self.detail,
             "status_code": self.status_code,
         }
-    
 
 
 class ValidatorException(HTTPException):
@@ -58,7 +58,6 @@ async def custom_http_exception_handler(request: Request, exc: TokenException):
     )
 
 
-
 @app.exception_handler(ValidatorException)
 async def custom_http_exception_handler(request: Request, exc: ValidatorException):
     return JSONResponse(
@@ -67,10 +66,10 @@ async def custom_http_exception_handler(request: Request, exc: ValidatorExceptio
     )
 
 
-
 @app.get("/")
 async def health_check():
     return success_response("Hello World!")
+
 
 app.include_router(auth_router)
 app.include_router(s3_router)

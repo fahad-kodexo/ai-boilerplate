@@ -1,8 +1,6 @@
 from fastapi import APIRouter
 
-from .views import (create_assistant,
-                    create_thread,
-                    upload_files)
+from .views import create_assistant, create_thread, upload_files
 
 assistant_router = APIRouter(prefix="/assistant")
 

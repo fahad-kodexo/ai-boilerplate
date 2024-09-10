@@ -1,8 +1,6 @@
 from fastapi import APIRouter
 
-from .views import (download_file,
-                    upload_file
-                    )
+from .views import download_file, upload_file
 
 s3_router = APIRouter(prefix="/file")
 

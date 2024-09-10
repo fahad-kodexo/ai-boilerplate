@@ -1,10 +1,12 @@
 from fastapi import APIRouter
 
-from .views import (register_user,
-                    login_user,
-                    forget_password,
-                    verify_otp,
-                    reset_password)
+from .views import (
+    register_user,
+    login_user,
+    forget_password,
+    verify_otp,
+    reset_password,
+)
 
 auth_router = APIRouter(prefix="/user")
 

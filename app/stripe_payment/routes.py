@@ -1,10 +1,12 @@
 from fastapi import APIRouter
 
-from .views import (webhook,
-                    create_checkout_session,
-                    create_portal_session,
-                    create_customer,
-                    checkout_success)
+from .views import (
+    webhook,
+    create_checkout_session,
+    create_portal_session,
+    create_customer,
+    checkout_success,
+)
 
 stripe_router = APIRouter(prefix="/stripe")
 
